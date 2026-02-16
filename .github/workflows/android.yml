@@ -8,14 +8,13 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Buildozer Action
-        # Usamos la acción oficial y actualizada para evitar errores de repositorio
-        uses: Enenkel/buildozer-action@v0.0.1
+        # Usamos la acción mantenida que es estándar para Kivy
+        uses: Pozos/buildozer-action@v2
         with:
           build_command: buildozer android debug
           python_version: 3.9
 
       - name: Upload APK
-        # Actualizado a v4 como pide GitHub para evitar la depreciación
         uses: actions/upload-artifact@v4
         with:
           name: NeuralLink-APK
