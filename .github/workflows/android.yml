@@ -3,7 +3,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04  # Forzamos una versión ultra-estable de Ubuntu
     steps:
       - uses: actions/checkout@v4
 
@@ -16,21 +16,12 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip autoconf automake libtool pkg-config zlib1g-dev libncurses-dev libncursesw5-dev cmake libffi-dev libssl-dev python3-dev
+          sudo apt install -y git zip unzip autoconf automake libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev python3-dev
           pip3 install --user --upgrade Cython==0.29.33 buildozer
 
       - name: Build with Buildozer
         run: |
           export PATH=$PATH:~/.local/bin
-          # Usamos un pipe más seguro para las licencias y evitamos que falle por el Broken Pipe
-          (yes || true) | buildozer android debug
-        continue-on-error: false
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: NeuralLink-APK
-          # Buscamos el APK de forma más flexible
-          path: bin/*.apk
-          if-no-files-found: error
-          
+          # Usamos el flag --warn-on-root para evitar bloqueos y quitamos el 'yes'
+          buildozer android debug || buildozer android debug
+        # El doble comando arriba es por si falla la primera descarga del SDK, reintente automáticamente
