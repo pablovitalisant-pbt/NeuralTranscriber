@@ -1,0 +1,17 @@
+name: Build APK
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Buildozer Action
+        uses: ArtemSerebrennkov/buildozer-action@v1
+        with:
+          build_command: buildozer android debug
+          python_version: 3.9
+      - name: Upload APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: NeuralLink-APK
+          path: bin/*.apk

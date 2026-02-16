@@ -1,0 +1,59 @@
+#:import utils kivy.utils
+
+ScreenManager:
+    MainScreen:
+        name: 'inicio'
+    ProcessingScreen:
+        name: 'procesando'
+    ResultScreen:
+        name: 'resultados'
+
+<MainScreen>:
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#0B0E14')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    BoxLayout:
+        orientation: 'vertical'
+        padding: dp(20)
+        Label:
+            text: "NEURAL LINK"
+            color: utils.get_color_from_hex('#00f2ff')
+            bold: True
+            size_hint_y: 0.2
+        Button:
+            text: "ESPERANDO"
+            background_color: 0,0,0,0
+            on_release: root.manager.current = 'procesando' # Simulación de inicio
+            canvas.before:
+                Color:
+                    rgba: utils.get_color_from_hex('#00f2ff')
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(20)]
+            color: 0,0,0,1
+
+<ProcessingScreen>:
+    canvas.before:
+        Color:
+            rgba: utils.get_color_from_hex('#0B0E14')
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    BoxLayout:
+        orientation: 'vertical'
+        Label:
+            text: root.segment_text
+            color: utils.get_color_from_hex('#00f2ff')
+
+<ResultScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        TextInput:
+            id: txt_final
+            readonly: True
+            background_color: 0,0,0,1
+            foreground_color: 1,1,1,1
