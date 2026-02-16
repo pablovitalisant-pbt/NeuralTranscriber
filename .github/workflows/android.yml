@@ -8,8 +8,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Buildozer Action
-        # Usamos la acción mantenida que es estándar para Kivy
-        uses: Pozos/buildozer-action@v2
+        # Esta es la acción oficial mantenida por la organización Kivy
+        uses: kivy/buildozer-action@master
         with:
           build_command: buildozer android debug
           python_version: 3.9
