@@ -22,12 +22,15 @@ jobs:
       - name: Build with Buildozer
         run: |
           export PATH=$PATH:~/.local/bin
-          # Este comando acepta las licencias de Android automáticamente
-          yes | buildozer android debug
+          # Usamos un pipe más seguro para las licencias y evitamos que falle por el Broken Pipe
+          (yes || true) | buildozer android debug
         continue-on-error: false
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: NeuralLink-APK
+          # Buscamos el APK de forma más flexible
           path: bin/*.apk
+          if-no-files-found: error
+          
