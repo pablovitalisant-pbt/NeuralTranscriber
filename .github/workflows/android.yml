@@ -3,7 +3,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-22.04  # Forzamos una versión ultra-estable de Ubuntu
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
@@ -22,6 +22,15 @@ jobs:
       - name: Build with Buildozer
         run: |
           export PATH=$PATH:~/.local/bin
-          # Usamos el flag --warn-on-root para evitar bloqueos y quitamos el 'yes'
+          # LA CLAVE: Aceptamos licencias mediante variable de entorno y flag de buildozer
+          export APP_ANDROID_ACCEPT_SDK_LICENSE=True
           buildozer android debug || buildozer android debug
-        # El doble comando arriba es por si falla la primera descarga del SDK, reintente automáticamente
+        env:
+          # Refuerzo de aceptación para el SDK Manager
+          ANDROID_SDK_HOME: /home/runner/.android
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeuralLink-APK
+          path: bin/*.apk
