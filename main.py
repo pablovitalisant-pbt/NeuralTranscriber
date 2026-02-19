@@ -24,13 +24,18 @@ class MainScreen(Screen):
     def load_audio_files(self):
         self.ids.file_list.clear_widgets()
         
-        folder = "/sdcard/Download/"
+        # --- CAMBIO IMPORTANTE: Usar una ruta dinámica y no harcodeada ---
+        from android.storage import primary_external_storage_path
+        folder = os.path.join(primary_external_storage_path(), 'Download')
+        # -----------------------------------------------------------------
+
         files_in_folder = []
         if os.path.exists(folder):
             files_in_folder = [f for f in os.listdir(folder) if f.lower().endswith(('.m4a', '.mp3', '.wav', '.ogg', '.flac'))]
 
         if not files_in_folder:
-            label = Button(text="Permiso concedido. No se encontraron audios en /Download/", size_hint_y=None, height=48, background_color=(0.1, 0.1, 0.1, 1))
+            label_text = f"No se encontraron audios en: {folder}"
+            label = Button(text=label_text, size_hint_y=None, height=48, background_color=(0.1, 0.1, 0.1, 1))
             self.ids.file_list.add_widget(label)
             return
 
