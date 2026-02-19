@@ -18,23 +18,21 @@ ScreenManager:
     BoxLayout:
         orientation: 'vertical'
         padding: dp(20)
+        spacing: dp(10)
         Label:
-            text: "NEURAL LINK"
+            text: "SELECCIONA UN AUDIO"
             color: utils.get_color_from_hex('#00f2ff')
             bold: True
-            size_hint_y: 0.2
-        Button:
-            text: "ESPERANDO"
-            background_color: 0,0,0,0
-            on_release: root.manager.current = 'procesando' # Simulación de inicio
-            canvas.before:
-                Color:
-                    rgba: utils.get_color_from_hex('#00f2ff')
-                RoundedRectangle:
-                    pos: self.pos
-                    size: self.size
-                    radius: [dp(20)]
-            color: 0,0,0,1
+            size_hint_y: 0.1
+            font_size: '20sp'
+        ScrollView:
+            size_hint_y: 0.9
+            GridLayout:
+                id: file_list
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: dp(5)
 
 <ProcessingScreen>:
     canvas.before:
