@@ -24,6 +24,7 @@ jobs:
           export PATH=$PATH:~/.local/bin
           # LA CLAVE: Aceptamos licencias mediante variable de entorno y flag de buildozer
           export APP_ANDROID_ACCEPT_SDK_LICENSE=True
+          buildozer appclean
           buildozer android debug || buildozer android debug
         env:
           # Refuerzo de aceptación para el SDK Manager
