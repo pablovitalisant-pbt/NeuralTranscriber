@@ -24,26 +24,42 @@ class MainScreen(Screen):
     def load_audio_files(self):
         self.ids.file_list.clear_widgets()
         
-        # --- CAMBIO IMPORTANTE: Usar una ruta dinámica y no harcodeada ---
-        from android.storage import primary_external_storage_path
-        folder = os.path.join(primary_external_storage_path(), 'Download')
-        # -----------------------------------------------------------------
+        debug_info = []
+        try:
+            # --- Lógica de depuración para encontrar la carpeta ---
+            debug_info.append("Iniciando búsqueda de archivos...")
+            from android.storage import primary_external_storage_path
+            folder = os.path.join(primary_external_storage_path(), 'Download')
+            debug_info.append(f"Ruta de búsqueda: {folder}")
+            
+            path_exists = os.path.exists(folder)
+            debug_info.append(f"¿La ruta existe?: {path_exists}")
 
-        files_in_folder = []
-        if os.path.exists(folder):
-            files_in_folder = [f for f in os.listdir(folder) if f.lower().endswith(('.m4a', '.mp3', '.wav', '.ogg', '.flac'))]
+            files_in_folder = []
+            if path_exists:
+                files_in_folder = [f for f in os.listdir(folder) if f.lower().endswith(('.m4a', '.mp3', '.wav', '.ogg', '.flac'))]
+                debug_info.append(f"Archivos de audio encontrados: {len(files_in_folder)}")
+            
+            if not files_in_folder:
+                # Si no hay archivos, mostramos toda la información de depuración
+                label_text = "\n".join(debug_info)
+                label = Button(text=label_text, font_size='12sp', size_hint_y=None, height=200, background_color=(0.1, 0.1, 0.1, 1))
+                self.ids.file_list.add_widget(label)
+                return
+            # --- Fin de la lógica de depuración ---
 
-        if not files_in_folder:
-            label_text = f"No se encontraron audios en: {folder}"
-            label = Button(text=label_text, size_hint_y=None, height=48, background_color=(0.1, 0.1, 0.1, 1))
+            for f in files_in_folder:
+                full_path = os.path.join(folder, f)
+                btn = Button(text=f, size_hint_y=None, height='48dp', background_color=(0.15, 0.15, 0.15, 1))
+                btn.bind(on_release=partial(self.start_processing_for_file, full_path))
+                self.ids.file_list.add_widget(btn)
+
+        except Exception as e:
+            # Si ocurre cualquier error, lo mostramos en pantalla
+            error_text = "\n".join(debug_info) + f"\n\nERROR INESPERADO: {str(e)}"
+            label = Button(text=error_text, font_size='12sp', size_hint_y=None, height=200, background_color=(0.1, 0.1, 0.1, 1))
             self.ids.file_list.add_widget(label)
-            return
 
-        for f in files_in_folder:
-            full_path = os.path.join(folder, f)
-            btn = Button(text=f, size_hint_y=None, height='48dp', background_color=(0.15, 0.15, 0.15, 1))
-            btn.bind(on_release=partial(self.start_processing_for_file, full_path))
-            self.ids.file_list.add_widget(btn)
 
     def start_processing_for_file(self, file_path, *args):
         processing_screen = self.manager.get_screen('procesando')
