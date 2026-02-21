@@ -12,24 +12,52 @@ from kivy.utils import platform
 # --- Lógica de Permisos de Android ---
 if platform == "android":
     from android.permissions import request_permissions, Permission
+    from android.storage import primary_external_storage_path
 
 class MainScreen(Screen):
-    def on_enter(self):
-        # La carga de archivos ahora se llama desde el método on_start de la app
-        # después de verificar los permisos.
-        app = App.get_running_app()
-        if app.permissions_granted:
+    
+    def find_and_display_files(self):
+        """
+        Este método es llamado por el botón. Controla todo el flujo
+        de permisos y carga de archivos.
+        """
+        self.ids.file_list.clear_widgets()
+        
+        def on_permissions_granted(permissions, grants):
+            """Callback que se ejecuta después de que el usuario responde a la solicitud de permisos."""
+            if all(grants):
+                # Si los permisos fueron concedidos, cargamos los archivos
+                self.load_audio_files()
+            else:
+                # Si no, mostramos un mensaje de error claro en la lista
+                error_text = "Error: Se requieren permisos de almacenamiento para buscar archivos."
+                label = Button(text=error_text, font_size='12sp', size_hint_y=None, height=200, background_color=(0.1, 0.1, 0.1, 1))
+                self.ids.file_list.add_widget(label)
+
+        if platform == "android":
+            # Pedimos los permisos. El resto de la lógica continúa en el callback 'on_permissions_granted'.
+            request_permissions(
+                [Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE],
+                on_permissions_granted
+            )
+        else:
+            # En un PC, simplemente cargamos los archivos.
             self.load_audio_files()
 
     def load_audio_files(self):
-        self.ids.file_list.clear_widgets()
-        
+        """
+        Esta función escanea el almacenamiento y muestra los archivos o un informe de depuración.
+        Ahora solo es llamada después de que los permisos han sido confirmados.
+        """
         debug_info = []
         try:
-            # --- Lógica de depuración para encontrar la carpeta ---
             debug_info.append("Iniciando búsqueda de archivos...")
-            from android.storage import primary_external_storage_path
-            folder = os.path.join(primary_external_storage_path(), 'Download')
+            
+            # Usamos una ruta genérica para la carpeta de descargas en PC para pruebas
+            folder = os.path.join(os.path.expanduser('~'), 'Downloads')
+            if platform == "android":
+                folder = os.path.join(primary_external_storage_path(), 'Download')
+            
             debug_info.append(f"Ruta de búsqueda: {folder}")
             
             path_exists = os.path.exists(folder)
@@ -43,10 +71,9 @@ class MainScreen(Screen):
             if not files_in_folder:
                 # Si no hay archivos, mostramos toda la información de depuración
                 label_text = "\n".join(debug_info)
-                label = Button(text=label_text, font_size='12sp', size_hint_y=None, height=200, background_color=(0.1, 0.1, 0.1, 1))
+                label = Button(text=label_text, font_size='12sp', halign='center', size_hint_y=None, height=200, background_color=(0.1, 0.1, 0.1, 1))
                 self.ids.file_list.add_widget(label)
                 return
-            # --- Fin de la lógica de depuración ---
 
             for f in files_in_folder:
                 full_path = os.path.join(folder, f)
@@ -57,16 +84,14 @@ class MainScreen(Screen):
         except Exception as e:
             # Si ocurre cualquier error, lo mostramos en pantalla
             error_text = "\n".join(debug_info) + f"\n\nERROR INESPERADO: {str(e)}"
-            label = Button(text=error_text, font_size='12sp', size_hint_y=None, height=200, background_color=(0.1, 0.1, 0.1, 1))
+            label = Button(text=error_text, font_size='12sp', halign='center', size_hint_y=None, height=200, background_color=(0.1, 0.1, 0.1, 1))
             self.ids.file_list.add_widget(label)
-
 
     def start_processing_for_file(self, file_path, *args):
         processing_screen = self.manager.get_screen('procesando')
         processing_screen.iniciar_proceso(file_path)
         self.manager.current = 'procesando'
 
-# ... (El resto de las clases ProcessingScreen y ResultScreen no cambian) ...
 class ProcessingScreen(Screen):
     progress_val = NumericProperty(0)
     status_text = StringProperty("INICIANDO MOTOR NEURAL...")
@@ -130,45 +155,10 @@ class ProcessingScreen(Screen):
 
 class ResultScreen(Screen):
     pass
-# --- Fin de las clases que no cambian ---
-
 
 class NeuralApp(App):
-    permissions_granted = False # Flag para saber si tenemos permisos
-
     def build(self):
         return Builder.load_file('neural.kv')
-
-    def on_start(self):
-        if platform == "android":
-            self.request_android_permissions()
-        else:
-            # En otros sistemas operativos, asumimos que tenemos permiso
-            self.permissions_granted = True
-            self.root.get_screen('inicio').load_audio_files()
-
-    def request_android_permissions(self):
-        def on_permissions_result(permissions, grants):
-            if all(grants):
-                self.permissions_granted = True
-                # Si los permisos fueron concedidos, cargamos los archivos
-                self.root.get_screen('inicio').load_audio_files()
-            else:
-                # Opcional: mostrar un mensaje al usuario
-                label = Button(text="Se necesitan permisos de almacenamiento para funcionar", size_hint_y=None, height=48)
-                self.root.get_screen('inicio').ids.file_list.add_widget(label)
-
-        request_permissions(
-            [Permission.READ_EXTERNAL_STORAGE, Permission.WRITE_EXTERNAL_STORAGE],
-            on_permissions_result
-        )
-    
-    def on_resume(self):
-        # Si la app se minimiza y vuelve, verifica los permisos de nuevo si no los tenía
-        if platform == "android" and not self.permissions_granted:
-             # Recargamos la lista de archivos por si los permisos se otorgan mientras la app estaba pausada
-             self.root.get_screen('inicio').load_audio_files()
-
 
 if __name__ == '__main__':
     NeuralApp().run()

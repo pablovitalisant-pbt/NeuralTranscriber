@@ -20,13 +20,21 @@ ScreenManager:
         padding: dp(20)
         spacing: dp(10)
         Label:
-            text: "SELECCIONA UN AUDIO"
+            text: "NEURAL LINK"
             color: utils.get_color_from_hex('#00f2ff')
             bold: True
             size_hint_y: 0.1
-            font_size: '20sp'
+            font_size: '24sp'
+        
+        Button:
+            id: find_files_button
+            text: "Buscar Archivos en Descargas"
+            size_hint_y: None
+            height: '48dp'
+            on_release: root.find_and_display_files()
+
         ScrollView:
-            size_hint_y: 0.9
+            size_hint_y: 0.8
             GridLayout:
                 id: file_list
                 cols: 1
